@@ -1,64 +1,61 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			],
-			character: [],
+			favorites: [],
 			planets: [],
-			details: []
+			characters: [],
+			vehicles: [],
+			readLater: []
 		},
 		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-                    fetch().then().then(data => setStore({ "foo": data.bar }))
-                */
-			},
-			changeColor: (index, color) => {
-				//get the store
+			// Add item character or planet to favs
+			addToFavs: item => {
 				const store = getStore();
-
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
+				const favorites = store.favorites;
+				favorites.unshift(item);
+				setStore({ favorites: favorites });
 			},
-			getInfoChar: () => {
-				let fetchUrl = "https://www.swapi.tech/api/people/";
-				fetch(fetchUrl)
-					.then(response => response.json())
-					.then(result => {
-						setStore({ character: result.results });
+			// Remove item character or planet from favs
+			removeFromFavs: itemFav => {
+				const store = getStore();
+				const favorites = store.favorites;
+				const removeIndex = (favorites || [])
+					.map(function(item) {
+						return item.name;
 					})
-					.catch(error => console.log("error", error));
+					.indexOf(itemFav.name);
+				favorites.splice(removeIndex, 1);
+				setStore({ favorites: favorites });
 			},
-
-			getInfoPlanets: () => {
-				let fetchUrl = "https://www.swapi.tech/api/planets/";
-				fetch(fetchUrl)
+			addReadLater: item => {
+				const store = getStore();
+				const readLater = store.readLater;
+				if (!readLater.includes(item)) {
+					readLater.unshift(item);
+					setStore({ readLater: readLater });
+				}
+			},
+			fetchPlanets() {
+				//Datos de los planetas
+				fetch("https://swapi.dev/api/planets/?limit=10")
 					.then(response => response.json())
-					.then(result => {
-						setStore({ planets: result.results });
-					})
-					.catch(error => console.log("error", error));
+					.then(data => setStore({ planets: data.results }));
+			},
+			fetchVehicles() {
+				//Datos de los vehiculos
+				fetch("https://swapi.dev/api/vehicles/?limit=10")
+					.then(response => response.json())
+					.then(data => setStore({ vehicles: data.results }));
+			},
+			fetchCharacters() {
+				//Datos de los personajes
+				fetch("https://swapi.dev/api/people/?limit=10")
+					.then(response => response.json())
+					.then(data =>
+						setStore({
+							characters: data.results
+						})
+					);
 			}
 		}
 	};
